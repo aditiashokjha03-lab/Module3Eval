@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./Context/AuthContext";
+import Login from "./Pages/Login";
+import AdminDashboard from './Pages/AdminDashboard';
+import CustomerDashboard from './Pages/CustomerDashboard';
+import UpdatePage from './Pages/UpdatePage'
+
+const PrivateRoute = ({children, allowedRole }) => {
+  const {user} = useAuth();
+
+  if(!user) {
+    return <Navigate to="/" />;
+  }
+  if (allowedRole && user.role !== allowedRole) {
+    return <Navigate to={user.role === 'admin'? '/admin/dashboard': '/customers/dashboard'} />;
+  }
+  return children;
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+    return (
+      <div className="App">
+        <Routes>
+            <Route path="/" element={<Login />} />
+            
+            <Route path="/admin/dashboard" element = {
+                <PrivateRoute allowedRole="admin">
+                    <AdminDashboard />
+                </PrivateRoute>
+            }/>
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+            <Route path="/admin/restaurants/update" element = {
+                <PrivateRoute allowedRole="admin">
+                    <UpdatePage />
+                </PrivateRoute>
+            }/>
+
+            <Route path="/customers/dashboard" element = {
+                <PrivateRoute allowedRole="admin">
+                    <CustomerDashboard />
+                </PrivateRoute>
+            }/>
+
+            <Route path="*" element = {
+              <Navigate to="/" />
+            }/>
+
+        </Routes>
+        </div>
+    );
 }
 
-export default App
+export default App; 
